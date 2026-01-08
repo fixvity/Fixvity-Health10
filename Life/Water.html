@@ -49,10 +49,15 @@ small{color:var(--muted)}
   border:1px solid #ddd;
 }
 
-/* 🔒 Prevent US height collapse */
-.height-us{grid-column:span 1}
-.height-us .row{display:flex;gap:8px;width:100%}
-.height-us input{flex:1}
+/* === FIX FOR US HEIGHT FIELD === */
+.height-us{
+  grid-column:span 2;
+}
+@media(max-width:768px){
+  .height-us{
+    grid-column:span 1;
+  }
+}
 
 button{
   width:100%;
@@ -109,7 +114,7 @@ canvas{max-width:100%;margin-top:20px}
 
   <div class="field">
     <label>Unit System</label>
-    <select id="unit">
+    <select id="unit" onchange="toggleUnits()">
       <option value="metric">Metric (kg / cm)</option>
       <option value="us">US (lb / ft + in)</option>
     </select>
@@ -127,7 +132,7 @@ canvas{max-width:100%;margin-top:20px}
 
   <div class="field height-us" id="heightUS" style="display:none">
     <label>Height (ft / in)</label>
-    <div class="row">
+    <div style="display:flex;gap:8px">
       <input id="heightFt" type="number" placeholder="ft">
       <input id="heightIn" type="number" placeholder="in">
     </div>
@@ -185,57 +190,44 @@ canvas{max-width:100%;margin-top:20px}
 <script>
 let chart;
 
-const unitEl = document.getElementById("unit");
-const weightEl = document.getElementById("weight");
-const heightMetricEl = document.getElementById("heightMetric");
-const heightUSEl = document.getElementById("heightUS");
-const heightCmEl = document.getElementById("heightCm");
-const heightFtEl = document.getElementById("heightFt");
-const heightInEl = document.getElementById("heightIn");
-
-const baseEl = document.getElementById("base");
+const baseEl  = document.getElementById("base");
 const extraEl = document.getElementById("extra");
 const totalEl = document.getElementById("total");
 const insightEl = document.getElementById("insight");
-
-unitEl.addEventListener("change", toggleUnits);
+const heightCmEl = document.getElementById("heightCm");
 
 function toggleUnits(){
-  const isUS = unitEl.value === "us";
-  heightMetricEl.style.display = isUS ? "none" : "block";
-  heightUSEl.style.display = isUS ? "block" : "none";
-  weightEl.placeholder = isUS ? "lb" : "kg";
+  const isUS = unit.value === "us";
+  heightMetric.style.display = isUS ? "none" : "block";
+  heightUS.style.display = isUS ? "block" : "none";
+  weight.placeholder = isUS ? "lb" : "kg";
 }
 
 function calculate(){
-  let weight = +weightEl.value;
-  if(!weight || weight < 20){
-    alert("Please enter a valid weight");
+  let w = +weight.value;
+  if(!w || w < 20){
+    alert("Enter a valid weight");
     return;
   }
 
   let heightCm = 0;
 
-  if(unitEl.value === "us"){
-    weight *= 0.453592;
-    heightCm = ((+heightFtEl.value || 0) * 12 + (+heightInEl.value || 0)) * 2.54;
+  if(unit.value === "us"){
+    w = w * 0.453592;
+    heightCm = ((+heightFt.value||0)*12 + (+heightIn.value||0)) * 2.54;
   }else{
     heightCm = +heightCmEl.value || 0;
   }
 
-  let base = weight * 0.033;
+  let base = w * 0.033;
 
   if(heightCm > 180) base *= 1.05;
   if(heightCm > 0 && heightCm < 150) base *= 0.95;
 
-  const extra =
-    +activity.value +
-    +climate.value +
-    +condition.value;
-
+  const extra = +activity.value + +climate.value + +condition.value;
   const total = base + extra;
 
-  if(unitEl.value === "us"){
+  if(unit.value === "us"){
     baseEl.textContent  = `${base.toFixed(2)} L (${(base*33.814).toFixed(0)} oz)`;
     extraEl.textContent = `${extra.toFixed(2)} L (${(extra*33.814).toFixed(0)} oz)`;
     totalEl.textContent = `${total.toFixed(2)} L (${(total*33.814).toFixed(0)} oz)`;
@@ -261,7 +253,7 @@ function calculate(){
 
 function drawChart(base, extra){
   if(chart) chart.destroy();
-  chart = new Chart(document.getElementById("waterChart"),{
+  chart = new Chart(waterChart,{
     type:"pie",
     data:{
       labels:["Base hydration","Additional needs"],
