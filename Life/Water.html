@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Water Intake Calculator – Medical Standard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+:root{
+  --primary:#2563eb;
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --radius:16px;
+  --text:#1f2937;
+  --muted:#6b7280;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,system-ui,Arial;
+  background:var(--bg);
+  color:var(--text);
+}
+.container{max-width:1100px;margin:auto;padding:20px}
+.card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:28px;
+  box-shadow:0 14px 36px rgba(0,0,0,.08);
+  margin-bottom:20px;
+}
+h1,h2{margin:0 0 10px;color:var(--primary)}
+small{color:var(--muted)}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:16px;
+}
+.field{display:flex;flex-direction:column}
+.field label{font-size:14px;margin-bottom:6px}
+.field input,.field select{
+  height:52px;
+  padding:12px 14px;
+  font-size:16px;
+  border-radius:10px;
+  border:1px solid #ddd;
+}
+
+button{
+  width:100%;
+  padding:18px;
+  background:var(--primary);
+  color:#fff;
+  border:none;
+  border-radius:14px;
+  font-size:18px;
+  cursor:pointer;
+}
+.print-btn{background:#111;margin-top:10px}
+
+.results{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:16px;
+}
+.box{
+  background:linear-gradient(180deg,#f8fafc,#eef2ff);
+  padding:18px;
+  border-radius:14px;
+  text-align:center;
+}
+.box b{font-size:22px}
+
+canvas{max-width:100%;margin-top:20px}
+
+.note{
+  background:#f1f5f9;
+  padding:16px;
+  border-radius:12px;
+  font-size:14px;
+  line-height:1.6;
+}
+
+/* PRINT */
+@media print{
+  button,.grid{display:none}
+  body{background:#fff}
+  .card{box-shadow:none;border:1px solid #ddd}
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<!-- INPUT -->
+<div class="card">
+<h1>Water Intake Calculator</h1>
+<small>Daily hydration needs · Medical standard (EFSA / IOM)</small>
+
+<div class="grid">
+
+  <div class="field">
+    <label>Gender</label>
+    <select id="gender">
+      <option value="male">Male</option>
+      <option value="female">Female</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Weight (kg)</label>
+    <input id="weight" type="number" placeholder="e.g. 70">
+  </div>
+
+  <div class="field">
+    <label>Physical Activity</label>
+    <select id="activity">
+      <option value="0">Sedentary</option>
+      <option value="0.5">Light activity</option>
+      <option value="1">Moderate activity</option>
+      <option value="1.5">Heavy training</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Climate</label>
+    <select id="climate">
+      <option value="0">Temperate</option>
+      <option value="0.5">Hot / Humid</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>Special Condition</label>
+    <select id="condition">
+      <option value="0">None</option>
+      <option value="0.3">Pregnant</option>
+      <option value="0.7">Breastfeeding</option>
+    </select>
+  </div>
+
+</div>
+
+<br>
+<button onclick="calculate()">Calculate Water Intake</button>
+<button class="print-btn" onclick="window.print()">🖨️ Print / Export PDF</button>
+</div>
+
+<!-- RESULTS -->
+<div class="card">
+
+<div class="results">
+  <div class="box">Base Requirement<br><b id="base">—</b> L</div>
+  <div class="box">Additional Needs<br><b id="extra">—</b> L</div>
+  <div class="box">Total Daily Intake<br><b id="total">—</b> L</div>
+</div>
+
+<canvas id="waterChart" height="240"></canvas>
+
+<div class="note" id="insight"></div>
+</div>
+
+</div>
+
+<script>
+let chart;
+
+const baseEl  = document.getElementById("base");
+const extraEl = document.getElementById("extra");
+const totalEl = document.getElementById("total");
+const insightEl = document.getElementById("insight");
+
+function calculate(){
+  const w = +document.getElementById("weight").value;
+  if(!w || w < 20){
+    alert("Please enter a valid weight");
+    return;
+  }
+
+  // Base hydration (≈33 ml/kg – medical average)
+  const base = w * 0.033;
+
+  const activityExtra  = +document.getElementById("activity").value;
+  const climateExtra   = +document.getElementById("climate").value;
+  const conditionExtra = +document.getElementById("condition").value;
+
+  const extra = activityExtra + climateExtra + conditionExtra;
+  const total = base + extra;
+
+  baseEl.textContent  = base.toFixed(2);
+  extraEl.textContent = extra.toFixed(2);
+  totalEl.textContent = total.toFixed(2);
+
+  insightEl.innerHTML = `
+  <b>How to use this result:</b><br>
+  • Base water is calculated from body weight<br>
+  • Extra water accounts for exercise, heat, and special conditions<br>
+  • Spread intake evenly throughout the day<br><br>
+  <b>Hydration tips:</b><br>
+  • Increase intake during illness or intense workouts<br>
+  • Pale yellow urine indicates good hydration<br><br>
+  <b>Medical disclaimer:</b>
+  Estimates only. Not intended for kidney disease,
+  heart failure, or medical conditions.
+  Consult a healthcare professional if unsure.
+  `;
+
+  drawChart(base, extra);
+}
+
+function drawChart(base, extra){
+  if(chart) chart.destroy();
+  chart = new Chart(document.getElementById("waterChart"),{
+    type:"pie",
+    data:{
+      labels:["Base hydration","Additional needs"],
+      datasets:[{
+        data:[base, extra],
+        backgroundColor:["#60a5fa","#34d399"]
+      }]
+    },
+    options:{
+      plugins:{
+        legend:{position:"bottom"},
+        tooltip:{
+          callbacks:{
+            label:(ctx)=>`${ctx.label}: ${ctx.raw.toFixed(2)} L`
+          }
+        }
+      }
+    }
+  });
+}
+</script>
+
+</body>
+</html>
