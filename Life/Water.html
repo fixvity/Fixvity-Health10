@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>Water Intake Calculator – Medical Standard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -49,15 +48,9 @@ small{color:var(--muted)}
   border:1px solid #ddd;
 }
 
-/* === FIX FOR US HEIGHT FIELD === */
-.height-us{
-  grid-column:span 2;
-}
-@media(max-width:768px){
-  .height-us{
-    grid-column:span 1;
-  }
-}
+.height-us{grid-column:span 2}
+.height-us .subgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:768px){.height-us{grid-column:span 1}}
 
 button{
   width:100%;
@@ -67,7 +60,6 @@ button{
   border:none;
   border-radius:14px;
   font-size:18px;
-  cursor:pointer;
 }
 .print-btn{background:#111;margin-top:10px}
 
@@ -84,20 +76,11 @@ button{
 }
 .box b{font-size:22px}
 
-canvas{max-width:100%;margin-top:20px}
-
 .note{
   background:#f1f5f9;
   padding:16px;
   border-radius:12px;
   font-size:14px;
-  line-height:1.6;
-}
-
-@media print{
-  button,.grid{display:none}
-  body{background:#fff}
-  .card{box-shadow:none;border:1px solid #ddd}
 }
 </style>
 </head>
@@ -105,66 +88,65 @@ canvas{max-width:100%;margin-top:20px}
 <body>
 <div class="container">
 
-<!-- INPUT -->
 <div class="card">
 <h1>Water Intake Calculator</h1>
 <small>Daily hydration needs · Medical standard (EFSA / IOM)</small>
 
 <div class="grid">
 
-  <div class="field">
-    <label>Unit System</label>
-    <select id="unit" onchange="toggleUnits()">
-      <option value="metric">Metric (kg / cm)</option>
-      <option value="us">US (lb / ft + in)</option>
-    </select>
-  </div>
+<div class="field">
+<label>Unit System</label>
+<select id="unit">
+<option value="metric">Metric (kg / cm)</option>
+<option value="us">US (lb / ft + in)</option>
+</select>
+</div>
 
-  <div class="field">
-    <label>Weight</label>
-    <input id="weight" type="number" placeholder="kg">
-  </div>
+<div class="field">
+<label>Weight</label>
+<input id="weight" type="number" placeholder="kg">
+</div>
 
-  <div class="field" id="heightMetric">
-    <label>Height (cm)</label>
-    <input id="heightCm" type="number">
-  </div>
+<div class="field" id="heightMetric">
+<label>Height (cm)</label>
+<input id="heightCm" type="number">
+</div>
 
-  <div class="field height-us" id="heightUS" style="display:none">
-    <label>Height (ft / in)</label>
-    <div style="display:flex;gap:8px">
-      <input id="heightFt" type="number" placeholder="ft">
-      <input id="heightIn" type="number" placeholder="in">
-    </div>
-  </div>
+<div class="field height-us" id="heightUS" style="display:none">
+<label>Height (ft / in)</label>
+<div class="subgrid">
+<input id="heightFt" type="number" placeholder="ft">
+<input id="heightIn" type="number" placeholder="in">
+</div>
+</div>
 
-  <div class="field">
-    <label>Physical Activity</label>
-    <select id="activity">
-      <option value="0">Sedentary (little or no exercise)</option>
-      <option value="0.4">Light (1–3 times/week)</option>
-      <option value="0.7">Moderate (3–5 times/week)</option>
-      <option value="1.0">High (6–7 times/week)</option>
-      <option value="1.3">Extreme (very heavy exercise/job)</option>
-    </select>
-  </div>
+<div class="field">
+<label>Physical Activity</label>
+<select id="activity">
+<option value="0">Sedentary</option>
+<option value="0.4">Light</option>
+<option value="0.7">Moderate</option>
+<option value="1.0">High</option>
+<option value="1.3">Extreme</option>
+</select>
+</div>
 
-  <div class="field">
-    <label>Climate</label>
-    <select id="climate">
-      <option value="0">Temperate</option>
-      <option value="0.5">Hot / Humid</option>
-    </select>
-  </div>
+<div class="field">
+<label>Climate</label>
+<select id="climate">
+<option value="0">Temperate</option>
+<option value="0.5">Hot / Humid</option>
+</select>
+</div>
 
-  <div class="field">
-    <label>Special Condition</label>
-    <select id="condition">
-      <option value="0">None</option>
-      <option value="0.3">Pregnant</option>
-      <option value="0.7">Breastfeeding</option>
-    </select>
-  </div>
+<div class="field">
+<label>Special Condition</label>
+<select id="condition">
+<option value="0">None</option>
+<option value="0.3">Pregnant</option>
+<option value="0.7">Breastfeeding</option>
+</select>
+</div>
 
 </div>
 
@@ -173,12 +155,11 @@ canvas{max-width:100%;margin-top:20px}
 <button class="print-btn" onclick="window.print()">🖨️ Print / Export PDF</button>
 </div>
 
-<!-- RESULTS -->
 <div class="card">
 <div class="results">
-  <div class="box">Base Requirement<br><b id="base">—</b></div>
-  <div class="box">Additional Needs<br><b id="extra">—</b></div>
-  <div class="box">Total Daily Intake<br><b id="total">—</b></div>
+<div class="box">Base<br><b id="base">—</b></div>
+<div class="box">Extra<br><b id="extra">—</b></div>
+<div class="box">Total<br><b id="total">—</b></div>
 </div>
 
 <canvas id="waterChart" height="240"></canvas>
@@ -190,80 +171,66 @@ canvas{max-width:100%;margin-top:20px}
 <script>
 let chart;
 
-const baseEl  = document.getElementById("base");
+// DOM bindings (FIXED)
+const unit = document.getElementById("unit");
+const weight = document.getElementById("weight");
+const heightMetric = document.getElementById("heightMetric");
+const heightUS = document.getElementById("heightUS");
+const heightCm = document.getElementById("heightCm");
+const heightFt = document.getElementById("heightFt");
+const heightIn = document.getElementById("heightIn");
+const baseEl = document.getElementById("base");
 const extraEl = document.getElementById("extra");
 const totalEl = document.getElementById("total");
-const insightEl = document.getElementById("insight");
-const heightCmEl = document.getElementById("heightCm");
+const insight = document.getElementById("insight");
+const waterChart = document.getElementById("waterChart");
+
+unit.addEventListener("change", toggleUnits);
 
 function toggleUnits(){
   const isUS = unit.value === "us";
   heightMetric.style.display = isUS ? "none" : "block";
   heightUS.style.display = isUS ? "block" : "none";
   weight.placeholder = isUS ? "lb" : "kg";
+
+  baseEl.textContent = extraEl.textContent = totalEl.textContent = "—";
+  insight.innerHTML = "";
 }
 
 function calculate(){
   let w = +weight.value;
-  if(!w || w < 20){
+  if(!w || (unit.value==="metric" && w<20) || (unit.value==="us" && w<45)){
     alert("Enter a valid weight");
     return;
   }
 
-  let heightCm = 0;
+  let h = 0;
+  if(unit.value==="us"){
+    w*=0.453592;
+    h=((+heightFt.value||0)*12+(+heightIn.value||0))*2.54;
+  } else h=+heightCm.value||0;
 
-  if(unit.value === "us"){
-    w = w * 0.453592;
-    heightCm = ((+heightFt.value||0)*12 + (+heightIn.value||0)) * 2.54;
-  }else{
-    heightCm = +heightCmEl.value || 0;
-  }
+  let base=w*0.033;
+  if(h>180) base*=1.05;
+  if(h&&h<150) base*=0.95;
 
-  let base = w * 0.033;
+  const extra=+activity.value+ +climate.value+ +condition.value;
+  const total=base+extra;
 
-  if(heightCm > 180) base *= 1.05;
-  if(heightCm > 0 && heightCm < 150) base *= 0.95;
+  baseEl.textContent=base.toFixed(2)+" L";
+  extraEl.textContent=extra.toFixed(2)+" L";
+  totalEl.textContent=total.toFixed(2)+" L";
 
-  const extra = +activity.value + +climate.value + +condition.value;
-  const total = base + extra;
-
-  if(unit.value === "us"){
-    baseEl.textContent  = `${base.toFixed(2)} L (${(base*33.814).toFixed(0)} oz)`;
-    extraEl.textContent = `${extra.toFixed(2)} L (${(extra*33.814).toFixed(0)} oz)`;
-    totalEl.textContent = `${total.toFixed(2)} L (${(total*33.814).toFixed(0)} oz)`;
-  }else{
-    baseEl.textContent  = `${base.toFixed(2)} L`;
-    extraEl.textContent = `${extra.toFixed(2)} L`;
-    totalEl.textContent = `${total.toFixed(2)} L`;
-  }
-
-  insightEl.innerHTML = `
-  <b>How to read your result:</b><br>
-  • Base = body size hydration need<br>
-  • Extra = activity, heat & condition adjustment<br>
-  • Total = recommended daily intake<br><br>
-  <b>Tip:</b> Pale yellow urine usually indicates good hydration.<br><br>
-  <b>Medical disclaimer:</b>
-  Estimates only. Consult a healthcare professional if you have
-  kidney, heart, or medical conditions.
-  `;
-
-  drawChart(base, extra);
+  drawChart(base,extra);
 }
 
-function drawChart(base, extra){
+function drawChart(base,extra){
   if(chart) chart.destroy();
-  chart = new Chart(waterChart,{
+  chart=new Chart(waterChart,{
     type:"pie",
     data:{
-      labels:["Base hydration","Additional needs"],
-      datasets:[{
-        data:[base, extra],
-        backgroundColor:["#60a5fa","#34d399"]
-      }]
-    },
-    options:{
-      plugins:{legend:{position:"bottom"}}
+      labels:["Base","Extra"],
+      datasets:[{data:[base,extra],backgroundColor:["#60a5fa","#34d399"]}]
     }
   });
 }
